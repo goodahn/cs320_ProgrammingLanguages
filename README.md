@@ -1,1 +1,1 @@
-# cs320_Programming_Languages
+# cs320_ProgrammingLanguages
