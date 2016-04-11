@@ -32,8 +32,8 @@
      (with 
       (first (second sexp)) (parse (second (second sexp))) 
       (parse (third sexp)))]
-    [(and (= (length sexp) 3) (symbol=? (first sexp) 'app))
-     (app (second sexp) (parse (third sexp)))]))
+    [(= (length sexp) 2)
+     (app (first sexp) (parse (second sexp)))]))
 
 ;;parse-fd : sexp -> fundef
 (define (parse-fd sexp)
@@ -68,15 +68,16 @@
 (define (interp f1wae funcs)
   (type-case F1WAE f1wae
     [num (n) n]
-    [id (s) (error "free variable")]
+    [id (s) (error "No free variable")]
     [add (l r) (+ (interp l funcs) (interp r funcs))]
     [sub (l r) (- (interp l funcs) (interp r funcs))]
     [with (x expr body) (interp (subst body x (interp expr funcs)) funcs)]
     [app (fname fargs) (local [(define func-find (lookup-fun fname funcs))]
-         (interp (subst (defun-body func-find) (defun-farg func-find) (interp fargs)) funcs))]))
+         (interp (subst (defun-body func-find) (defun-farg func-find) (interp fargs funcs)) funcs))]))
 
 (test (interp (parse '{with {x 5} {with {x 5} {+ x x}}}) (parse-fd '{defun f x 1})) 10)
-;(test (interp (parse '{with {x 5} {with {y 5} {+ x y}}})) 10)
-;(test (interp (parse '{with {x 5} {with {y 5} {with {z 5} {with {k 1} {+ x y}}}}})) 10)
-;(test (interp (parse '{with {x 5} {with {y 5} {with {z 5} {with {k {with {y 1} {+ x y}}} {+ k 10}}}}})) 16)
-;(test/exn (interp (parse '{with {x 5} {with {x 5} {+ x y}}})) "No free variable")
+(test (interp (parse '{with {x 5} {with {y 5} {+ x y}}}) (parse-fd '{defun f x 1})) 10)
+(test (interp (parse '{with {x 5} {with {y 5} {with {z 5} {with {k 1} {+ x y}}}}}) (parse-fd '{defun f x 1})) 10)
+(test (interp (parse '{with {x 5} {with {y 5} {with {z 5} {with {k {with {y 1} {+ x y}}} {+ k 10}}}}}) (parse-fd '{defun f x 1})) 16)
+(test (interp (parse '{f 5}) (list (parse-fd '{defun f x {+ x x}}))) 10)
+(test/exn (interp (parse '{with {x 5} {with {x 5} {+ x y}}}) (parse-fd '{defun f x 1})) "No free variable")
