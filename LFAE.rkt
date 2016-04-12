@@ -11,7 +11,7 @@
 (define-type LFAEV
   [numV (n number?)]
   [closureV (param symbol?) (body LFAE?) (ds DfrdSub?)]
-  [exprV (expr LFAE?) (ds DfrdSub?)])
+  [exprV (expr LFAE?) (ds DfrdSub?) (value (box/c (or/c false LFAEV?)))])
 
 (define-type DfrdSub
   [mtSub]
@@ -37,8 +37,12 @@
                              (lookup-ds s ds_))]))
 ;; strict : LFAEV -> LFAEV
 (define (strict lfaev)
-  (cond
-    [(exprV? lfaev) (strict (interp (exprV-expr lfaev) (exprV-ds lfaev)))]
+  (type-case LFAEV lfaev
+    [exprV (expr ds value) (if (not (unbox value))
+                               (local [(define v (strict (interp expr ds)))]
+                                 (begin (set-box! value v)
+                                        v))
+                               (unbox value))]
     [else lfaev]))
 
 ;; num-op : op -> process
@@ -58,7 +62,7 @@
     [sub (l r) (num- (interp l ds) (interp r ds))]
     [fun (x body) (closureV x body ds)]
     [app (func farg) (local [(define fval (strict (interp func ds)))
-                             (define aval (exprV farg ds))]
+                             (define aval (exprV farg ds (box #f)))]
                        (interp (closureV-body fval)
                                (aSub (closureV-param fval)
                                      aval
