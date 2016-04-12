@@ -29,7 +29,7 @@
     [(list '- l r) (sub (parse l) (parse r))]
     [(list 'with x expr body) (with x (parse expr) (parse body))]
     [(list 'fun x f) (fun (first x) (parse f))]
-    [(list 'app f a) (app (parse f) (parse a))]))
+    [(list f a) (app (parse f) (parse a))]))
 
 ;; lookup : symbol DfrdSub -> FWAE
 ;; find value of parama which is in environment
