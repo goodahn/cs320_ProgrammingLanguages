@@ -13,7 +13,7 @@
 ;; Deferred Substitution
 (define-type DefrdSub
   [mtSub]
-  [aSub (param symbol?) (body FWAE?) (rest DefrdSub?)])
+  [aSub (param symbol?) (value FWAEV?) (rest DefrdSub?)])
 
 ;; FWAE value
 (define-type FWAEV
@@ -35,7 +35,7 @@
 ;; find value of parama which is in environment
 (define (lookup param ds)
   (if (symbol=? param (aSub-param ds))
-      (aSub-body ds)
+      (aSub-value ds)
       (lookup param (aSub-rest ds))))
 
 ;; num-op : op -> lambda function
@@ -59,3 +59,5 @@
                             (define aval (interp arg ds))]
                       (interp (closureV-body fval) 
                               (aSub (closureV-param fval) aval (closureV-ds fval))))]))
+
+(test (interp (parse '{{fun {x} {+ x x}} 5}) (mtSub)) (numV 10))

@@ -6,7 +6,7 @@
   [add (lhs LFAE?) (rhs LFAE?)]
   [sub (lhs LFAE?) (rhs LFAE?)]
   [fun (param symbol?) (body LFAE?)]
-  [app (func LFAE?) (farg LFAE?)])
+  [app (func LFAE?) (arg LFAE?)])
 
 (define-type LFAEV
   [numV (n number?)]
