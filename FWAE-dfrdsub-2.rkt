@@ -56,3 +56,4 @@
                                (closureV-ds fval))))]))
 
 (test (interp (parse '{{fun {x} {+ x x}} 5}) (mtSub)) (numV 10))
+(interp (parse '{{fun {a} {{fun {b} a} 10}} 10}) (mtSub))
