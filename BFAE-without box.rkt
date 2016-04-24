@@ -80,8 +80,8 @@
 
 (define (interp bfae ds st)
   (type-case BFAE bfae
-    [num (n) (numV n)]
-    [id (s) (lookup-ds s ds)]
+    [num (n) (v*s (numV n) st)]
+    [id (s) (v*s (lookup-ds s ds) st)]
     [add (l r) (interp-two l r ds st
                            (lambda (v1 v2 st1)
                              (v*s (num+ v1 v2) st1)))]
