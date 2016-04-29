@@ -158,8 +158,17 @@
 (define num+ (num-op +))
 (define num- (num-op -))
 
+(define (uniq-funcs? funcs)
+  (if (= (length (remove-duplicates funcs
+                    (lambda (x y) (symbol=? (deffun-fname x) (deffun-fname y))))) (length funcs))
+      #f
+      #t))
+  
+
 ;; interp : FnWAE list-of-FunDef -> number or record
 (define (interp fnwae funcs)
+  (if (uniq-funcs? funcs)
+      (error "bad syntax")
  (type-case FnWAE fnwae
    [num (n) (num n)]
    [id (s) (error "no free variable")]
@@ -180,7 +189,7 @@
                             funcs)
                     (error "wrong arity")))]
    [defrec (content) (defrec (map (lambda (y) (rec (rec-name y) (interp (rec-content y) funcs))) content))]
-   [get (contents target) (interp (lookup-rec (interp contents funcs) target) funcs)]))
+   [get (contents target) (interp (lookup-rec (interp contents funcs) target) funcs)])))
 
 ;; interp-FnWAEV : FnWAEV -> number or 'record
 (define (interp-FnWAEV fnwaev)
@@ -215,7 +224,7 @@
 (test (run "{+ {f} {f}}" (list (parse-defn '{deffun {f} 5}))) 10)
 (test (run "{h 1 4 5 6}" (list (parse-defn '{deffun {h x y z w} {+ x w}}) (parse-defn '{deffun {g x y z w} {+ y z}}))) 7)
 (test (run "{with {x 10} {- {+ x {f}} {g 4}}}" (list (parse-defn '{deffun {f} 4}) (parse-defn '{deffun {g x} {+ x x}}))) 6)
-
+(test/exn (run "{with {x 10} {- {+ x {f}} {g 4}}}" (list (parse-defn '{deffun {f} 4}) (parse-defn '{deffun {f x} {+ x x}}))) "bad syntax")
 (test (run "{rec {a 10} {b {+ 1 2}}}" empty) 'record)
 (test (run "{get {rec {a 10} {b {+ 1 2}}} b}" empty) 3)
 (test (run "{g {rec {a 0} {c 12} {b 7}}}" (list (parse-defn '{deffun {g r} {get r c}}))) 12)
